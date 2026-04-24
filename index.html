@@ -5,7 +5,7 @@
 
   <link rel="stylesheet" href="style.css">
 
-  <!-- Leaflet CSS -->
+  <!-- Leaflet CSS (REQUIRED) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 
   <style>
@@ -13,34 +13,21 @@
       margin: 0;
       height: 100%;
     }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
   </style>
 </head>
 
 <body>
 
-<div id="controls">
-  <label>
-    Radius (miles):
-    <input id="radiusInput" type="number" value="100" min="1">
-  </label>
-
-  <label>
-    Mode:
-    <select id="modeSelect">
-      <option value="outside">Outside</option>
-      <option value="inside">Inside</option>
-    </select>
-  </label>
-
-  <button id="clearBtn">Clear</button>
-</div>
-
 <div id="map"></div>
 
-<!-- Leaflet MUST load first -->
+<!-- Leaflet JS MUST be first -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<!-- Your script LAST -->
+<!-- Your script MUST be last -->
 <script src="script.js"></script>
 
 </body>
