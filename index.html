@@ -1,23 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Map Tool</title>
+  <title>Test Map</title>
 
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+    }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+  </style>
 </head>
 
 <body>
 
 <div id="map"></div>
 
-<!-- Leaflet JS (must come BEFORE your script) -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<!-- Your script LAST -->
-<script src="script.js"></script>
+<script>
+  // HARD TEST: if this doesn't show map, Leaflet is not loading
+  const map = L.map('map').setView([20, 0], 2);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(map);
+</script>
 
 </body>
 </html>
