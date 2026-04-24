@@ -7,7 +7,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let circles = [];
 
-// convert miles → meters
 function toMeters(miles) {
   return miles * 1609.34;
 }
@@ -30,7 +29,6 @@ map.on('click', function (e) {
   circles.push(circle);
 });
 
-// clear all circles
 document.getElementById('clearBtn').addEventListener('click', () => {
   circles.forEach(c => map.removeLayer(c));
   circles = [];
