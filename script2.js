@@ -1,4 +1,3 @@
-
 const map = L.map('map').setView([20, 0], 2);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -14,9 +13,7 @@ function toMeters(miles) {
 map.on('click', function (e) {
 
   const radiusInput = document.getElementById('radiusInput');
-  const radius = parseFloat(radiusInput.value);
-
-  if (!radius || radius <= 0) return;
+  const radius = radiusInput ? parseFloat(radiusInput.value) : 100;
 
   const circle = L.circle(e.latlng, {
     radius: toMeters(radius),
