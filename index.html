@@ -3,31 +3,29 @@
 <head>
   <title>Map Tool</title>
 
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Leaflet CSS (REQUIRED) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-    }
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
+    html, body { margin: 0; height: 100%; }
+    #map { height: 100vh; }
+    #controls { padding: 10px; background: white; }
   </style>
 </head>
 
 <body>
 
+<div id="controls">
+  <label>
+    Radius (miles):
+    <input id="radiusInput" type="number" value="100">
+  </label>
+
+  <button id="clearBtn">Clear</button>
+</div>
+
 <div id="map"></div>
 
-<!-- Leaflet JS MUST be first -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<!-- Your script MUST be last -->
 <script src="script2.js"></script>
 
 </body>
