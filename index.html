@@ -1,74 +1,47 @@
-const map = L.map('map').setView([20, 0], 2);
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Map Tool</title>
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19
-}).addTo(map);
+  <link rel="stylesheet" href="style.css">
 
-let shapes = [];
-let mergedLayer = null;
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 
-function toKm(miles) {
-  return miles * 1.60934;
-}
-
-function rebuild() {
-
-  if (mergedLayer) {
-    map.removeLayer(mergedLayer);
-    mergedLayer = null;
-  }
-
-  if (shapes.length === 0) return;
-
-  // 🔥 SAFE STRATEGY: rebuild from scratch each time
-  let result = shapes[0];
-
-  for (let i = 1; i < shapes.length; i++) {
-    try {
-      const merged = turf.union(result, shapes[i]);
-      if (merged) result = merged;
-    } catch (e) {
-      console.log("Skipping invalid union");
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
     }
-  }
+  </style>
+</head>
 
-  mergedLayer = L.geoJSON(result, {
-    style: {
-      color: 'red',
-      fillColor: 'red',
-      fillOpacity: 0.3
-    }
-  }).addTo(map);
-}
+<body>
 
-map.on('click', (e) => {
+<div id="controls">
+  <label>
+    Radius (miles):
+    <input id="radiusInput" type="number" value="100" min="1">
+  </label>
 
-  const miles = parseFloat(document.getElementById('radiusInput').value);
-  const mode = document.getElementById('modeSelect').value;
+  <label>
+    Mode:
+    <select id="modeSelect">
+      <option value="outside">Outside</option>
+      <option value="inside">Inside</option>
+    </select>
+  </label>
 
-  if (!miles || miles <= 0) return;
+  <button id="clearBtn">Clear</button>
+</div>
 
-  const circle = turf.circle(
-    [e.latlng.lng, e.latlng.lat],
-    toKm(miles),
-    { steps: 64, units: 'kilometers' }
-  );
+<div id="map"></div>
 
-  if (mode === "outside") {
-    shapes.push(circle);
-    rebuild();
-  } else {
-    L.circle(e.latlng, {
-      radius: toKm(miles) * 1000,
-      color: 'blue',
-      fillColor: 'blue',
-      fillOpacity: 0.3
-    }).addTo(map);
-  }
-});
+<!-- Leaflet MUST load first -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-// clear button
-document.getElementById("clearBtn").addEventListener("click", () => {
-  shapes = [];
-  if (mergedLayer) map.removeLayer(mergedLayer);
-});
+<!-- Your script LAST -->
+<script src="script.js"></script>
+
+</body>
+</html>
