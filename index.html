@@ -6,9 +6,9 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
   <style>
-    body {
+    html, body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      height: 100%;
     }
 
     #map {
@@ -27,11 +27,20 @@
       overflow: auto;
       padding: 10px;
       z-index: 1000;
-      transition: transform 0.3s ease;
     }
 
     #sidebar.hidden {
       transform: translateX(-100%);
+    }
+
+    #controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1100;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
     }
 
     .circle-item {
@@ -43,21 +52,10 @@
     button {
       margin-top: 5px;
       width: 100%;
-      cursor: pointer;
     }
 
     input {
       width: 90%;
-    }
-
-    #controls {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 1001;
-      background: white;
-      padding: 10px;
-      border-radius: 8px;
     }
   </style>
 </head>
@@ -77,7 +75,6 @@
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 <script src="script.js"></script>
 
 </body>
