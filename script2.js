@@ -1,46 +1,79 @@
-alert("NEW VERSION LOADED");
+
 const map = L.map('map').setView([20, 0], 2);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19
 }).addTo(map);
 
-// store circles with mode
 let circles = [];
+let placingMode = false;
 
 function toMeters(miles) {
   return miles * 1609.34;
 }
 
+// CLICK ADD BUTTON → enable placement
+document.getElementById('addBtn').addEventListener('click', () => {
+  placingMode = true;
+  alert("Click on the map to place your circle");
+});
+
+// MAP CLICK
 map.on('click', function (e) {
 
-  const radiusInput = document.getElementById('radiusInput');
-  const modeSelect = document.getElementById('modeSelect');
+  if (!placingMode) return;
 
-  const radius = radiusInput ? parseFloat(radiusInput.value) : 100;
-  const mode = modeSelect ? modeSelect.value : "outside";
+  placingMode = false;
 
-  const circle = L.circle(e.latlng, {
+  const radius = parseFloat(document.getElementById('radiusInput').value) || 100;
+
+  const circleLayer = L.circle(e.latlng, {
     radius: toMeters(radius),
     color: 'red',
     fillColor: 'red',
-    fillOpacity: 0.3,
-    weight: 1
+    fillOpacity: 0.3
   }).addTo(map);
 
-  // store BOTH circle + mode
-  circles.push({
-    layer: circle,
-    mode: mode
-  });
+  const circleData = {
+    lat: e.latlng.lat,
+    lng: e.latlng.lng,
+    radius: radius,
+    layer: circleLayer
+  };
+
+  circles.push(circleData);
+  updateSidebar();
 });
 
-// clear all
-const clearBtn = document.getElementById('clearBtn');
+// UPDATE SIDEBAR
+function updateSidebar() {
+  const list = document.getElementById('circleList');
+  list.innerHTML = '';
 
-if (clearBtn) {
-  clearBtn.addEventListener('click', function () {
-    circles.forEach(c => map.removeLayer(c.layer));
-    circles = [];
+  circles.forEach((c, index) => {
+    const div = document.createElement('div');
+    div.className = 'circle-item';
+
+    div.innerHTML = `
+      <strong>Circle ${index + 1}</strong><br>
+      Lat: ${c.lat.toFixed(2)}<br>
+      Lng: ${c.lng.toFixed(2)}<br>
+      Radius: 
+      <input type="number" value="${c.radius}" data-index="${index}" class="radiusEdit">
+    `;
+
+    list.appendChild(div);
+  });
+
+  // attach edit listeners
+  document.querySelectorAll('.radiusEdit').forEach(input => {
+    input.addEventListener('change', function () {
+      const i = this.dataset.index;
+      const newRadius = parseFloat(this.value);
+
+      circles[i].radius = newRadius;
+
+      circles[i].layer.setRadius(toMeters(newRadius));
+    });
   });
 }
