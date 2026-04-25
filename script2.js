@@ -1,4 +1,3 @@
-
 const map = L.map('map').setView([20, 0], 2);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -6,17 +5,19 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let circles = [];
+let mergeLayer = null;
 
 function toMeters(miles) {
   return miles * 1609.34;
 }
 
-// ADD CIRCLE (auto at center)
+/* ---------------------------
+   ADD CIRCLE
+----------------------------*/
 document.getElementById('addBtn').addEventListener('click', () => {
 
   const center = map.getCenter();
-  const radiusInput = document.getElementById('radiusInput');
-  const radius = parseFloat(radiusInput.value) || 50;
+  const radius = 50;
 
   const circleLayer = L.circle(center, {
     radius: toMeters(radius),
@@ -32,12 +33,11 @@ document.getElementById('addBtn').addEventListener('click', () => {
     lat: center.lat,
     lng: center.lng,
     radius: radius,
-    mode: "normal",
+    mode: "normal", // normal or inverse
     layer: circleLayer,
     marker: marker
   };
 
-  // drag updates position
   marker.on('dragend', function () {
     const pos = marker.getLatLng();
 
@@ -53,7 +53,9 @@ document.getElementById('addBtn').addEventListener('click', () => {
   updateSidebar();
 });
 
-// SIDEBAR RENDER
+/* ---------------------------
+   SIDEBAR
+----------------------------*/
 function updateSidebar() {
   const list = document.getElementById('circleList');
   list.innerHTML = '';
@@ -75,12 +77,9 @@ function updateSidebar() {
       <br>
 
       Mode:
-      <select data-index="${index}" class="modeSelect">
-        <option value="normal" ${c.mode === "normal" ? "selected" : ""}>Normal</option>
-        <option value="inverse" ${c.mode === "inverse" ? "selected" : ""}>Inverse</option>
-      </select>
-
-      <br>
+      <button data-index="${index}" class="modeToggle">
+        ${c.mode === "inverse" ? "Inverse" : "Normal"}
+      </button>
 
       <button data-index="${index}" class="deleteBtn">Delete</button>
     `;
@@ -89,36 +88,39 @@ function updateSidebar() {
   });
 }
 
-// radius editing
+/* ---------------------------
+   RADIUS EDIT
+----------------------------*/
 document.addEventListener('input', function (e) {
   if (e.target.classList.contains('radiusEdit')) {
 
     const i = e.target.dataset.index;
     const newRadius = parseFloat(e.target.value);
 
-    if (!newRadius) return;
+    if (!newRadius || newRadius <= 0) return;
 
     circles[i].radius = newRadius;
     circles[i].layer.setRadius(toMeters(newRadius));
   }
 });
 
-// mode change (normal / inverse)
-document.addEventListener('change', function (e) {
-  if (e.target.classList.contains('modeSelect')) {
+/* ---------------------------
+   MODE + DELETE
+----------------------------*/
+document.addEventListener('click', function (e) {
+
+  // TOGGLE MODE
+  if (e.target.classList.contains('modeToggle')) {
 
     const i = e.target.dataset.index;
-    circles[i].mode = e.target.value;
 
-    // visual hint (optional)
-    circles[i].layer.setStyle({
-      dashArray: circles[i].mode === "inverse" ? "6,8" : null
-    });
+    circles[i].mode =
+      circles[i].mode === "inverse" ? "normal" : "inverse";
+
+    updateSidebar();
   }
-});
 
-// delete circle
-document.addEventListener('click', function (e) {
+  // DELETE
   if (e.target.classList.contains('deleteBtn')) {
 
     const i = e.target.dataset.index;
@@ -127,6 +129,71 @@ document.addEventListener('click', function (e) {
     map.removeLayer(circles[i].marker);
 
     circles.splice(i, 1);
+
     updateSidebar();
   }
+});
+
+/* ---------------------------
+   MERGE SYSTEM (WITH INVERSE)
+----------------------------*/
+document.getElementById('mergeBtn').addEventListener('click', () => {
+
+  if (mergeLayer) {
+    map.removeLayer(mergeLayer);
+  }
+
+  let normal = [];
+  let inverse = [];
+
+  // convert circles → turf buffers
+  circles.forEach(c => {
+
+    const point = turf.point([c.lng, c.lat]);
+    const buffer = turf.buffer(point, c.radius * 1.60934, { units: 'kilometers' });
+
+    if (c.mode === "inverse") {
+      inverse.push(buffer);
+    } else {
+      normal.push(buffer);
+    }
+  });
+
+  if (normal.length === 0 && inverse.length === 0) return;
+
+  let normalUnion = null;
+  let inverseUnion = null;
+
+  // union normals
+  if (normal.length > 0) {
+    normalUnion = normal[0];
+    for (let i = 1; i < normal.length; i++) {
+      normalUnion = turf.union(normalUnion, normal[i]);
+    }
+  }
+
+  // union inverses
+  if (inverse.length > 0) {
+    inverseUnion = inverse[0];
+    for (let i = 1; i < inverse.length; i++) {
+      inverseUnion = turf.union(inverseUnion, inverse[i]);
+    }
+  }
+
+  let result = normalUnion;
+
+  // subtract inverse areas
+  if (inverseUnion && normalUnion) {
+    result = turf.difference(normalUnion, inverseUnion);
+  }
+
+  if (!result) return;
+
+  mergeLayer = L.geoJSON(result, {
+    style: {
+      color: 'blue',
+      fillColor: 'blue',
+      fillOpacity: 0.25
+    }
+  }).addTo(map);
 });
