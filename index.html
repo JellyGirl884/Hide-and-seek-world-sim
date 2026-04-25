@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Map Tool</title>
+  <title>Map Test</title>
 
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
   <style>
     html, body {
@@ -12,69 +14,25 @@
     }
 
     #map {
-      height: 100vh;
-      width: 100%;
-    }
-
-    #sidebar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 260px;
       height: 100%;
-      background: #121212;
-      color: white;
-      overflow: auto;
-      padding: 10px;
-      z-index: 1000;
-    }
-
-    #sidebar.hidden {
-      transform: translateX(-100%);
-    }
-
-    #controls {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 1100;
-      background: white;
-      padding: 10px;
-      border-radius: 8px;
-    }
-
-    .circle-item {
-      border-bottom: 1px solid #333;
-      padding: 8px 0;
-      font-size: 14px;
-    }
-
-    button {
-      margin-top: 5px;
       width: 100%;
     }
-
-    input {
-      width: 90%;
-    }
+  </style>
 </head>
 
 <body>
 
-<div id="sidebar">
-  <h3>Circles</h3>
-  <div id="circleList"></div>
-</div>
-
-<div id="controls">
-  <button id="addBtn">Add Circle</button>
-  <button id="toggleSidebar">Toggle Sidebar</button>
-</div>
-
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="script.js"></script>
+
+<script>
+  const map = L.map('map').setView([51.5, -0.09], 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(map);
+</script>
 
 </body>
 </html>
