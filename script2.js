@@ -1,3 +1,4 @@
+
 const map = L.map('map').setView([20, 0], 2);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -5,15 +6,15 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let circles = [];
-let mergeLayer = null;
+let resultLayer = null;
 
 function toMeters(miles) {
   return miles * 1609.34;
 }
 
-/* ---------------------------
+/* -----------------------
    ADD CIRCLE
-----------------------------*/
+------------------------*/
 document.getElementById('addBtn').addEventListener('click', () => {
 
   const center = map.getCenter();
@@ -23,8 +24,7 @@ document.getElementById('addBtn').addEventListener('click', () => {
     radius: toMeters(radius),
     color: 'red',
     fillColor: 'red',
-    fillOpacity: 0.3,
-    weight: 1
+    fillOpacity: 0.3
   }).addTo(map);
 
   const marker = L.marker(center, { draggable: true }).addTo(map);
@@ -33,7 +33,7 @@ document.getElementById('addBtn').addEventListener('click', () => {
     lat: center.lat,
     lng: center.lng,
     radius: radius,
-    mode: "normal", // normal or inverse
+    mode: "normal",
     layer: circleLayer,
     marker: marker
   };
@@ -46,16 +46,17 @@ document.getElementById('addBtn').addEventListener('click', () => {
 
     circleLayer.setLatLng(pos);
 
-    updateSidebar();
+    recompute();
   });
 
   circles.push(circleData);
   updateSidebar();
+  recompute();
 });
 
-/* ---------------------------
+/* -----------------------
    SIDEBAR
-----------------------------*/
+------------------------*/
 function updateSidebar() {
   const list = document.getElementById('circleList');
   list.innerHTML = '';
@@ -88,9 +89,9 @@ function updateSidebar() {
   });
 }
 
-/* ---------------------------
-   RADIUS EDIT
-----------------------------*/
+/* -----------------------
+   INPUT HANDLING
+------------------------*/
 document.addEventListener('input', function (e) {
   if (e.target.classList.contains('radiusEdit')) {
 
@@ -101,15 +102,14 @@ document.addEventListener('input', function (e) {
 
     circles[i].radius = newRadius;
     circles[i].layer.setRadius(toMeters(newRadius));
+
+    recompute();
   }
 });
 
-/* ---------------------------
-   MODE + DELETE
-----------------------------*/
 document.addEventListener('click', function (e) {
 
-  // TOGGLE MODE
+  // toggle mode
   if (e.target.classList.contains('modeToggle')) {
 
     const i = e.target.dataset.index;
@@ -118,9 +118,10 @@ document.addEventListener('click', function (e) {
       circles[i].mode === "inverse" ? "normal" : "inverse";
 
     updateSidebar();
+    recompute();
   }
 
-  // DELETE
+  // delete
   if (e.target.classList.contains('deleteBtn')) {
 
     const i = e.target.dataset.index;
@@ -131,26 +132,28 @@ document.addEventListener('click', function (e) {
     circles.splice(i, 1);
 
     updateSidebar();
+    recompute();
   }
 });
 
-/* ---------------------------
-   MERGE SYSTEM (WITH INVERSE)
-----------------------------*/
-document.getElementById('mergeBtn').addEventListener('click', () => {
+/* -----------------------
+   CORE: AUTO MERGE + INVERSE FIX
+------------------------*/
+function recompute() {
 
-  if (mergeLayer) {
-    map.removeLayer(mergeLayer);
+  if (resultLayer) {
+    map.removeLayer(resultLayer);
+    resultLayer = null;
   }
 
   let normal = [];
   let inverse = [];
 
-  // convert circles → turf buffers
+  // convert circles → valid buffers
   circles.forEach(c => {
 
-    const point = turf.point([c.lng, c.lat]);
-    const buffer = turf.buffer(point, c.radius * 1.60934, { units: 'kilometers' });
+    const pt = turf.point([c.lng, c.lat]);
+    const buffer = turf.buffer(pt, c.radius * 1.60934, { units: 'kilometers' });
 
     if (c.mode === "inverse") {
       inverse.push(buffer);
@@ -161,39 +164,43 @@ document.getElementById('mergeBtn').addEventListener('click', () => {
 
   if (normal.length === 0 && inverse.length === 0) return;
 
-  let normalUnion = null;
-  let inverseUnion = null;
+  // union normals safely
+  let mergedNormal = normal.length ? normal[0] : null;
 
-  // union normals
-  if (normal.length > 0) {
-    normalUnion = normal[0];
-    for (let i = 1; i < normal.length; i++) {
-      normalUnion = turf.union(normalUnion, normal[i]);
+  for (let i = 1; i < normal.length; i++) {
+    try {
+      mergedNormal = turf.union(mergedNormal, normal[i]);
+    } catch (e) {}
+  }
+
+  // union inverses safely
+  let mergedInverse = inverse.length ? inverse[0] : null;
+
+  for (let i = 1; i < inverse.length; i++) {
+    try {
+      mergedInverse = turf.union(mergedInverse, inverse[i]);
+    } catch (e) {}
+  }
+
+  let finalShape = mergedNormal;
+
+  // CRITICAL FIX: only subtract if both exist
+  if (mergedInverse && mergedNormal) {
+    try {
+      const diff = turf.difference(mergedNormal, mergedInverse);
+      if (diff) finalShape = diff;
+    } catch (e) {
+      // fallback: ignore inverse if geometry fails
     }
   }
 
-  // union inverses
-  if (inverse.length > 0) {
-    inverseUnion = inverse[0];
-    for (let i = 1; i < inverse.length; i++) {
-      inverseUnion = turf.union(inverseUnion, inverse[i]);
-    }
-  }
+  if (!finalShape) return;
 
-  let result = normalUnion;
-
-  // subtract inverse areas
-  if (inverseUnion && normalUnion) {
-    result = turf.difference(normalUnion, inverseUnion);
-  }
-
-  if (!result) return;
-
-  mergeLayer = L.geoJSON(result, {
+  resultLayer = L.geoJSON(finalShape, {
     style: {
       color: 'blue',
       fillColor: 'blue',
       fillOpacity: 0.25
     }
   }).addTo(map);
-});
+}
