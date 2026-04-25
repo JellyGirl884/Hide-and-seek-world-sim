@@ -6,24 +6,21 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let circles = [];
-let resultLayer = null;
 
 function toMeters(miles) {
   return miles * 1609.34;
 }
 
-/* ------------------------
+/* ----------------------
    SIDEBAR TOGGLE
-------------------------*/
-const sidebar = document.getElementById("sidebar");
-
-document.getElementById("toggleSidebar").addEventListener("click", () => {
-  sidebar.classList.toggle("hidden");
+----------------------*/
+document.getElementById('toggleSidebar').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('hidden');
 });
 
-/* ------------------------
+/* ----------------------
    ADD CIRCLE
-------------------------*/
+----------------------*/
 document.getElementById('addBtn').addEventListener('click', () => {
 
   const center = map.getCenter();
@@ -37,7 +34,7 @@ document.getElementById('addBtn').addEventListener('click', () => {
 
   const marker = L.marker(center, { draggable: true }).addTo(map);
 
-  const circleData = {
+  const circle = {
     lat: center.lat,
     lng: center.lng,
     radius: 50,
@@ -46,26 +43,21 @@ document.getElementById('addBtn').addEventListener('click', () => {
     marker: marker
   };
 
-  marker.on('dragend', function () {
+  marker.on('dragend', () => {
     const pos = marker.getLatLng();
-
-    circleData.lat = pos.lat;
-    circleData.lng = pos.lng;
-
-    circleLayer.setLatLng(pos);
-
-    recompute();
+    circle.lat = pos.lat;
+    circle.lng = pos.lng;
+    circle.layer.setLatLng(pos);
   });
 
-  circles.push(circleData);
+  circles.push(circle);
 
   updateSidebar();
-  recompute();
 });
 
-/* ------------------------
-   SIDEBAR RENDER
-------------------------*/
+/* ----------------------
+   SIDEBAR
+----------------------*/
 function updateSidebar() {
   const list = document.getElementById('circleList');
   list.innerHTML = '';
@@ -77,51 +69,54 @@ function updateSidebar() {
 
     div.innerHTML = `
       <b>Circle ${i + 1}</b><br>
-
-      Lat: ${c.lat.toFixed(3)}<br>
-      Lng: ${c.lng.toFixed(3)}<br>
+      Lat: ${c.lat.toFixed(2)}<br>
+      Lng: ${c.lng.toFixed(2)}<br>
 
       Radius:
-      <input type="number" value="${c.radius}" data-i="${i}" class="radiusInput">
+      <input type="number" value="${c.radius}" data-i="${i}" class="radius">
 
       <br>
 
       Mode:
-      <button class="modeBtn" data-i="${i}">
+      <button class="mode" data-i="${i}">
         ${c.mode}
       </button>
 
-      <button class="deleteBtn" data-i="${i}">Delete</button>
+      <button class="delete" data-i="${i}">
+        Delete
+      </button>
     `;
 
     list.appendChild(div);
   });
 }
 
-/* ------------------------
-   INPUTS
-------------------------*/
+/* ----------------------
+   INPUT HANDLING
+----------------------*/
 document.addEventListener('input', e => {
-  if (e.target.classList.contains('radiusInput')) {
-
+  if (e.target.classList.contains('radius')) {
     const i = e.target.dataset.i;
     circles[i].radius = parseFloat(e.target.value);
-
     circles[i].layer.setRadius(toMeters(circles[i].radius));
-
-    recompute();
   }
 });
 
-/* ------------------------
-   CLICK EVENTS
-------------------------*/
 document.addEventListener('click', e => {
 
-  // toggle mode
-  if (e.target.classList.contains('modeBtn')) {
+  if (e.target.classList.contains('mode')) {
+    const i = e.target.dataset.i;
+    circles[i].mode = circles[i].mode === "inverse" ? "normal" : "inverse";
+    updateSidebar();
+  }
 
+  if (e.target.classList.contains('delete')) {
     const i = e.target.dataset.i;
 
-    circles[i].mode =
-      circles[i].mode === "inverse
+    map.removeLayer(circles[i].layer);
+    map.removeLayer(circles[i].marker);
+
+    circles.splice(i, 1);
+    updateSidebar();
+  }
+});
