@@ -1,14 +1,17 @@
-
+/* Reset */
 html, body {
   margin: 0;
   height: 100%;
+  font-family: Arial, sans-serif;
 }
 
+/* Map takes full screen */
 #map {
   height: 100vh;
   width: 100%;
 }
 
+/* Sidebar (dark mode) */
 #sidebar {
   position: absolute;
   top: 0;
@@ -16,17 +19,44 @@ html, body {
   width: 260px;
   height: 100%;
   background: #121212;
-  color: white;
-  z-index: 1000;
+  color: #ffffff;
   overflow: auto;
+  padding: 10px;
+  z-index: 1000;
+  transition: transform 0.3s ease;
 }
 
+/* Hidden sidebar */
+#sidebar.hidden {
+  transform: translateX(-100%);
+}
+
+/* Circle entries */
+.circle-item {
+  border-bottom: 1px solid #333;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+/* Control panel (top right) */
 #controls {
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 1001;
+  z-index: 1100;
   background: white;
   padding: 10px;
-  border-radius: 6px;
+  border-radius: 8px;
+}
+
+/* Buttons */
+button {
+  margin-top: 5px;
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Inputs */
+input {
+  width: 90%;
 }
