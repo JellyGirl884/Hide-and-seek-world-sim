@@ -1,5 +1,13 @@
 
-const map = L.map('map').setView([20, 0], 2);
+window.onload = function () {
+
+  const map = L.map('map').setView([20, 0], 2);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(map);
+
+  window._map = map; // debug safety
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19
@@ -120,3 +128,5 @@ document.addEventListener('click', e => {
     updateSidebar();
   }
 });
+
+}
