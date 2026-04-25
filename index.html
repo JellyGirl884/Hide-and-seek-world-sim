@@ -40,14 +40,48 @@
 
 <div id="map"></div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></>
 
 <script>
-  const map = L.map('map').setView([51.5, -0.09], 13);
+  const map = L.map('map').setView([51.5, -0.09], 5);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19
   }).addTo(map);
+
+  let circles = [];
+
+  function toMeters(miles) {
+    return miles * 1609.34;
+  }
+
+  // ADD BUTTON
+  const addBtn = document.createElement('button');
+  addBtn.innerText = "Add Circle";
+  addBtn.style.width = "100%";
+  document.getElementById('sidebar').appendChild(addBtn);
+
+  addBtn.addEventListener('click', () => {
+
+    const center = map.getCenter();
+
+    const circle = L.circle(center, {
+      radius: toMeters(50),
+      color: 'red',
+      fillColor: 'red',
+      fillOpacity: 0.3
+    }).addTo(map);
+
+    const marker = L.marker(center, { draggable: true }).addTo(map);
+
+    marker.on('drag', () => {
+      circle.setLatLng(marker.getLatLng());
+    });
+
+    circles.push({ circle, marker });
+  });
 </script>
 
 </body>
