@@ -1,3 +1,4 @@
+
 const map = L.map('map').setView([20, 0], 2);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -5,50 +6,37 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let circles = [];
-let placingMode = false;
 
 function toMeters(miles) {
   return miles * 1609.34;
 }
 
-// ADD BUTTON
+// ADD BUTTON → instantly create circle
 document.getElementById('addBtn').addEventListener('click', () => {
-  placingMode = true;
-  alert("Click on the map to place your circle");
-});
 
-// MAP CLICK
-map.on('click', function (e) {
+  const center = map.getCenter();
+  const radius = 50; // default
 
-  if (!placingMode) return;
-  placingMode = false;
-
-  const radius = parseFloat(document.getElementById('radiusInput').value) || 100;
-
-  // circle
-  const circleLayer = L.circle(e.latlng, {
+  const circleLayer = L.circle(center, {
     radius: toMeters(radius),
     color: 'red',
     fillColor: 'red',
     fillOpacity: 0.3
   }).addTo(map);
 
-  // draggable center marker
-  const marker = L.marker(e.latlng, {
-    draggable: true
-  }).addTo(map);
+  const marker = L.marker(center, { draggable: true }).addTo(map);
 
   const circleData = {
-    lat: e.latlng.lat,
-    lng: e.latlng.lng,
+    lat: center.lat,
+    lng: center.lng,
     radius: radius,
     layer: circleLayer,
     marker: marker
   };
 
-  // DRAGGING updates circle position
-  marker.on('drag', function (event) {
-    const pos = event.target.getLatLng();
+  // drag to move
+  marker.on('dragend', function () {
+    const pos = marker.getLatLng();
 
     circleData.lat = pos.lat;
     circleData.lng = pos.lng;
@@ -62,7 +50,7 @@ map.on('click', function (e) {
   updateSidebar();
 });
 
-// SIDEBAR UPDATE
+// SIDEBAR
 function updateSidebar() {
   const list = document.getElementById('circleList');
   list.innerHTML = '';
@@ -83,28 +71,30 @@ function updateSidebar() {
 
     list.appendChild(div);
   });
-
-  // RADIUS EDIT
-  document.querySelectorAll('.radiusEdit').forEach(input => {
-    input.addEventListener('change', function () {
-      const i = this.dataset.index;
-      const newRadius = parseFloat(this.value);
-
-      circles[i].radius = newRadius;
-      circles[i].layer.setRadius(toMeters(newRadius));
-    });
-  });
-
-  // DELETE
-  document.querySelectorAll('.deleteBtn').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const i = this.dataset.index;
-
-      map.removeLayer(circles[i].layer);
-      map.removeLayer(circles[i].marker);
-
-      circles.splice(i, 1);
-      updateSidebar();
-    });
-  });
 }
+
+// radius edit
+document.addEventListener('input', function (e) {
+  if (e.target.classList.contains('radiusEdit')) {
+    const i = e.target.dataset.index;
+    const newRadius = parseFloat(e.target.value);
+
+    if (!newRadius) return;
+
+    circles[i].radius = newRadius;
+    circles[i].layer.setRadius(toMeters(newRadius));
+  }
+});
+
+// delete
+document.addEventListener('click', function (e) {
+  if (e.target.classList.contains('deleteBtn')) {
+    const i = e.target.dataset.index;
+
+    map.removeLayer(circles[i].layer);
+    map.removeLayer(circles[i].marker);
+
+    circles.splice(i, 1);
+    updateSidebar();
+  }
+});
