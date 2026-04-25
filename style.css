@@ -1,35 +1,32 @@
-body {
+
+html, body {
   margin: 0;
-  font-family: Barlow;
+  height: 100%;
 }
 
 #map {
   height: 100vh;
+  width: 100%;
 }
 
 #sidebar {
   position: absolute;
-  left: 0;
   top: 0;
+  left: 0;
   width: 260px;
   height: 100%;
   background: #121212;
   color: white;
-  overflow: auto;
-  padding: 10px;
   z-index: 1000;
+  overflow: auto;
 }
 
-#sidebar.hidden {
-  transform: translateX(-100%);
-}
-
-.circle-item {
-  border-bottom: 1px solid #333;
-  padding: 8px;
-}
-
-button {
-  width: 100%;
-  margin-top: 5px;
+#controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1001;
+  background: white;
+  padding: 10px;
+  border-radius: 6px;
 }
