@@ -1,13 +1,5 @@
 
-window.onload = function () {
-
-  const map = L.map('map').setView([20, 0], 2);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19
-  }).addTo(map);
-
-  window._map = map; // debug safety
+const map = L.map('map').setView([20, 0], 2);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19
@@ -33,7 +25,7 @@ document.getElementById('addBtn').addEventListener('click', () => {
 
   const center = map.getCenter();
 
-  const circleLayer = L.circle(center, {
+  const circle = L.circle(center, {
     radius: toMeters(50),
     color: 'red',
     fillColor: 'red',
@@ -42,29 +34,29 @@ document.getElementById('addBtn').addEventListener('click', () => {
 
   const marker = L.marker(center, { draggable: true }).addTo(map);
 
-  const circle = {
+  const data = {
     lat: center.lat,
     lng: center.lng,
     radius: 50,
     mode: "normal",
-    layer: circleLayer,
+    layer: circle,
     marker: marker
   };
 
   marker.on('dragend', () => {
     const pos = marker.getLatLng();
-    circle.lat = pos.lat;
-    circle.lng = pos.lng;
-    circle.layer.setLatLng(pos);
+    data.lat = pos.lat;
+    data.lng = pos.lng;
+    circle.setLatLng(pos);
+    updateSidebar();
   });
 
-  circles.push(circle);
-
+  circles.push(data);
   updateSidebar();
 });
 
 /* ----------------------
-   SIDEBAR
+   SIDEBAR RENDER
 ----------------------*/
 function updateSidebar() {
   const list = document.getElementById('circleList');
@@ -77,8 +69,9 @@ function updateSidebar() {
 
     div.innerHTML = `
       <b>Circle ${i + 1}</b><br>
-      Lat: ${c.lat.toFixed(2)}<br>
-      Lng: ${c.lng.toFixed(2)}<br>
+
+      Lat: ${c.lat.toFixed(3)}<br>
+      Lng: ${c.lng.toFixed(3)}<br>
 
       Radius:
       <input type="number" value="${c.radius}" data-i="${i}" class="radius">
@@ -100,24 +93,30 @@ function updateSidebar() {
 }
 
 /* ----------------------
-   INPUT HANDLING
+   EVENTS
 ----------------------*/
 document.addEventListener('input', e => {
   if (e.target.classList.contains('radius')) {
+
     const i = e.target.dataset.i;
     circles[i].radius = parseFloat(e.target.value);
+
     circles[i].layer.setRadius(toMeters(circles[i].radius));
   }
 });
 
 document.addEventListener('click', e => {
 
+  // toggle mode (inverse exists but visual only for now)
   if (e.target.classList.contains('mode')) {
     const i = e.target.dataset.i;
-    circles[i].mode = circles[i].mode === "inverse" ? "normal" : "inverse";
-    updateSidebar();
+    circles[i].mode =
+      circles[i].mode === "inverse" ? "normal" : "inverse";
+
+    e.target.innerText = circles[i].mode;
   }
 
+  // delete
   if (e.target.classList.contains('delete')) {
     const i = e.target.dataset.i;
 
@@ -128,5 +127,3 @@ document.addEventListener('click', e => {
     updateSidebar();
   }
 });
-
-}
