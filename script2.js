@@ -5,6 +5,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19
 }).addTo(map);
 
+// store circles with mode
 let circles = [];
 
 function toMeters(miles) {
@@ -19,25 +20,27 @@ map.on('click', function (e) {
   const radius = radiusInput ? parseFloat(radiusInput.value) : 100;
   const mode = modeSelect ? modeSelect.value : "outside";
 
-  const color = mode === "inside" ? "blue" : "red";
-
   const circle = L.circle(e.latlng, {
     radius: toMeters(radius),
-    color: color,
-    fillColor: color,
+    color: 'red',
+    fillColor: 'red',
     fillOpacity: 0.3,
     weight: 1
   }).addTo(map);
 
-  circles.push(circle);
+  // store BOTH circle + mode
+  circles.push({
+    layer: circle,
+    mode: mode
+  });
 });
 
-// clear all circles
+// clear all
 const clearBtn = document.getElementById('clearBtn');
 
 if (clearBtn) {
   clearBtn.addEventListener('click', function () {
-    circles.forEach(c => map.removeLayer(c));
+    circles.forEach(c => map.removeLayer(c.layer));
     circles = [];
   });
 }
