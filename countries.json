@@ -1,0 +1,26 @@
+[
+  {
+    "name": "United Kingdom",
+    "lat": 55.3781,
+    "lng": -3.4360,
+    "continent": "Europe",
+    "population": 67000000,
+    "gdp_per_capita": 46000
+  },
+  {
+    "name": "France",
+    "lat": 46.2276,
+    "lng": 2.2137,
+    "continent": "Europe",
+    "population": 68000000,
+    "gdp_per_capita": 42000
+  },
+  {
+    "name": "Nigeria",
+    "lat": 9.0820,
+    "lng": 8.6753,
+    "continent": "Africa",
+    "population": 220000000,
+    "gdp_per_capita": 2400
+  }
+]
